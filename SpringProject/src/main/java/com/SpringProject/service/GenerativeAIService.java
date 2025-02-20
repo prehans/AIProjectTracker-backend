@@ -1,10 +1,14 @@
 package com.SpringProject.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,10 +47,41 @@ public class GenerativeAIService {
                 Map content = (Map) candidates.get(0).get("content");
                 List<Map> parts = (List<Map>) content.get("parts");
                 if (parts != null && !parts.isEmpty()) {
-                    return parts.get(0).get("text").toString();
+                    String responseText = parts.get(0).get("text").toString();
+                    return convertToJson(formatResponseWithCheckboxes(responseText));
+//                    return formatResponseWithCheckboxes(responseText).toString();
+                  //  return parts.get(0).get("text").toString();
                 }
             }
         }
-        return "No response from AI model. API Key: " + apiKey;
+        return "No response from AI model. API Key: hello " + apiKey;
     }
+
+    private List<Map<String, Object>> formatResponseWithCheckboxes(String responseText) {
+        // Split the response by phases or tasks
+        String[] phases = responseText.split("\\n\\n"); // Assuming phases/tasks are separated by double line breaks
+
+        List<Map<String, Object>> tasks = new ArrayList<>();
+        for (int i = 0; i < phases.length; i++) {
+            Map<String, Object> task = new HashMap<>();
+            task.put("taskId", i + 1);
+            task.put("description", phases[i].trim()); // Trim unnecessary whitespace
+            task.put("completed", false); // Default all tasks to "not completed"
+            tasks.add(task);
+        }
+
+        return tasks; // Return the formatted task list
+    }
+
+    private String convertToJson(List<Map<String, Object>> tasks) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(tasks); // Convert the task list to a JSON string
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "{\"error\": \"Failed to convert tasks to JSON.\"}";
+        }
+    }
+
 }
+
