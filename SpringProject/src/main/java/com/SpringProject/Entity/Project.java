@@ -1,5 +1,7 @@
 package com.SpringProject.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.List;
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long projectId;
+    private Long projectId  ;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -18,10 +20,12 @@ public class Project {
     @Column(name = "project_name", nullable = false)
     private String projectName;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Task> tasks;
 
     public Long getProjectId() {

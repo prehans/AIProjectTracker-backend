@@ -1,9 +1,10 @@
 package com.SpringProject.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-
 
 
 @Entity
@@ -59,10 +60,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Project> projects;
 
     // Getters, setters, and constructors

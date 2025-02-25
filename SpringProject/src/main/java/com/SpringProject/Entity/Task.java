@@ -1,5 +1,6 @@
 package com.SpringProject.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -38,6 +39,7 @@ public class Task {
         this.completed = completed;
     }
 
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -51,8 +53,8 @@ public class Task {
     private Long taskId;
 
     @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "project_id")
+    private Project project ;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
@@ -60,6 +62,7 @@ public class Task {
     @Column(nullable = false)
     private Boolean completed = false;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
