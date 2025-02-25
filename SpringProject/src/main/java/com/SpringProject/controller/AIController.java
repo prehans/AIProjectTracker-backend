@@ -22,4 +22,10 @@ public class AIController {
         }
         return generativeAIService.getAIResponse(prompt , project_id);
     }
+    @GetMapping("/get/{projectId}")
+    public String getTasks(@PathVariable Long projectId) {
+
+            return generativeAIService.getTasksAsJson(projectId);
+
+    }
 }

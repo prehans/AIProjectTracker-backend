@@ -11,7 +11,8 @@ import java.util.List;
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long projectId  ;
+    @Column(name = "project_id")
+    private Long id  ;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -29,11 +30,11 @@ public class Project {
     private List<Task> tasks;
 
     public Long getProjectId() {
-        return projectId;
+        return id;
     }
 
     public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+        this.id = projectId;
     }
 
     public User getUser() {

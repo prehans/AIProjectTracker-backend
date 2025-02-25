@@ -31,6 +31,9 @@ public class GenerativeAIService {
         this.projectRepository = projectRepository;
         this.restTemplate = new RestTemplate();
     }
+    //////////////////////////////////////////////////////
+    /// function to generate the response (task) from AI
+    //////////////////////////////////////////////////////
 
     public String getAIResponse(String prompt, Long project_id) {
         // Prepare request body
@@ -99,5 +102,28 @@ public class GenerativeAIService {
             return "{\"error\": \"Failed to convert tasks to JSON.\"}";
         }
 
+    }
+    /////////////////////////////////////////
+    /// function to get all task from project
+    /////////////////////////////////////////
+
+    public String getTasksAsJson(Long projectId) {
+
+        if (!taskRepository.existsById(projectId)) {
+            return "Project not found with Id " + projectId; // Return an empty list to indicate project not found
+        }
+        List<Task> tasks = taskRepository.findByProjectId(projectId);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule()); // Handles LocalDateTime if used
+
+        try {
+            return objectMapper.writeValueAsString(tasks);
+        } catch (Exception e) {
+//            When an exception occurs, Java generates a "stack trace" that records the method calls in reverse order
+//            (last method call first). printStackTrace() prints this trace, helping you find the root cause of an error.
+           e.printStackTrace();
+            return "{\"error\": \"Failed to convert tasks to JSON.\"}";
+        }
     }
 }
