@@ -1,9 +1,11 @@
 package com.SpringProject.controller;
 
+import com.SpringProject.Entity.Project;
 import com.SpringProject.service.GenerativeAIService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,6 +28,12 @@ public class AIController {
     public String getTasks(@PathVariable Long projectId) {
 
             return generativeAIService.getTasksAsJson(projectId);
+
+    }
+    @GetMapping("/get/projects")
+    public List<Project> getProjects() {
+
+     return generativeAIService.getProjects();
 
     }
 }

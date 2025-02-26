@@ -12,9 +12,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class GenerativeAIService {
@@ -124,6 +122,17 @@ public class GenerativeAIService {
 //            (last method call first). printStackTrace() prints this trace, helping you find the root cause of an error.
            e.printStackTrace();
             return "{\"error\": \"Failed to convert tasks to JSON.\"}";
+        }
+    }
+
+    public List<Project> getProjects(){
+        List<Project> projects = projectRepository.findAll();
+        try{
+            return projects;
+        }
+        catch (Exception e) {
+            e.printStackTrace(); // Print the full stack trace
+            return Collections.emptyList(); // Return an empty list in case of an error
         }
     }
 }
