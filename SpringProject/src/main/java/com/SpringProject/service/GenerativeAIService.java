@@ -1,9 +1,11 @@
 package com.SpringProject.service;
 
+import com.SpringProject.Entity.User;
 import com.SpringProject.Repository.ProjectRepository;
 import com.SpringProject.Repository.TaskRepository;
 import com.SpringProject.Entity.Task;
 import com.SpringProject.Entity.Project;
+import com.SpringProject.Repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -23,17 +25,19 @@ public class GenerativeAIService {
     private final TaskRepository taskRepository;
     private final RestTemplate restTemplate;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
-    public GenerativeAIService(TaskRepository taskRepository , ProjectRepository projectRepository) {
+    public GenerativeAIService(TaskRepository taskRepository , ProjectRepository projectRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
         this.restTemplate = new RestTemplate();
     }
     //////////////////////////////////////////////////////
     /// function to generate the response (task) from AI
     //////////////////////////////////////////////////////
 
-    public String getAIResponse(String prompt, Long project_id) {
+    public String getAIResponse(String prompt, Long userId) {
         // Prepare request body
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of(
@@ -62,27 +66,71 @@ public class GenerativeAIService {
 
                 if (parts != null && !parts.isEmpty()) {
                     String responseText = parts.get(0).get("text").toString();
-                    return convertToJson(formatResponseWithCheckboxes(responseText , project_id));
-
+//                    return convertToJson(formatResponseWithCheckboxes(responseText , project_id));
+                    return generateProjectWithTasks("New AI Project", userId, responseText);
                 }
             }
         }
         return "{\"error\": \"No response from AI model.\"}";
     }
 
-    private List<Task> formatResponseWithCheckboxes(String responseText , Long projectId) {
-        String[] phases = responseText.split("\\n\\n"); // Assuming double newlines separate tasks
-        List<Task> tasks = new ArrayList<>();
-        // Fetch the project from the database
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
+//    private List<Task> formatResponseWithCheckboxes(String responseText , Long projectId) {
+//        String[] phases = responseText.split("\\n\\n"); // Assuming double newlines separate tasks
+//        List<Task> tasks = new ArrayList<>();
+//        // Fetch the project from the database
+//        Project project = projectRepository.findById(projectId)
+//                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
+//
+//        for (int i = 0; i < phases.length; i++) {
+//            Task task = new Task();
+//            task.setDescription(phases[i].trim());
+//            task.setCompleted(false); // Default to false
+//            task.setProject(project);
+//            taskRepository.save(task); // Save to DB
+//            tasks.add(task);
+//        }
+//        return tasks;
+//    }
 
-        for (int i = 0; i < phases.length; i++) {
+    public String generateProjectWithTasks(String projectName, Long userId, String aiResponseText) {
+        // Step 1: Create a new project
+        Project project = createNewProject(projectName, userId);
+        if (project == null) {
+            return "{\"error\": \"User not found with ID: " + userId + "\"}";
+        }
+
+        // Step 2: Create tasks from AI response and assign them to the project
+        List<Task> tasks = createTasksForProject(aiResponseText, project);
+
+        // Return the created tasks in JSON format
+        return convertToJson(tasks);
+    }
+
+    private Project createNewProject(String projectName, Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            return null; // User not found
+        }
+
+        Project project = new Project();
+        project.setProjectName(projectName);
+        project.setUser(userOptional.get());
+
+        projectRepository.save(project); // Save project to DB
+        return project;
+    }
+
+    private List<Task> createTasksForProject(String aiResponseText, Project project) {
+        String[] taskDescriptions = aiResponseText.split("\\n\\n"); // Assuming tasks are separated by double newlines
+        List<Task> tasks = new ArrayList<>();
+
+        for (String description : taskDescriptions) {
             Task task = new Task();
-            task.setDescription(phases[i].trim());
-            task.setCompleted(false); // Default to false
+            task.setDescription(description.trim());
+            task.setCompleted(false);
             task.setProject(project);
-            taskRepository.save(task); // Save to DB
+
+            taskRepository.save(task); // Save task to DB
             tasks.add(task);
         }
         return tasks;

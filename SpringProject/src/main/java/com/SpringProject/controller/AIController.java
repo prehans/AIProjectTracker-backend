@@ -18,11 +18,13 @@ public class AIController {
     @PostMapping("/generate")
     public String generateResponse(@RequestBody Map<String, String> request) {
         String prompt = request.get("prompt");
-        Long project_id = Long.valueOf(request.get("project_id"));
         if (prompt == null || prompt.isEmpty()) {
             return "Error: 'prompt' field is missing or empty in the request body";
         }
-        return generativeAIService.getAIResponse(prompt , project_id);
+        Long userId = Long.valueOf(request.get("user_id")); // Extract userId from request
+        String aiResponse = generativeAIService.getAIResponse(prompt, userId);
+
+        return aiResponse;
     }
     @GetMapping("/get/{projectId}")
     public String getTasks(@PathVariable Long projectId) {
