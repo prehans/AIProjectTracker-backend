@@ -78,6 +78,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -94,26 +95,41 @@ public class SecurityConfig {
         this.customAuthenticationProvider = customAuthenticationProvider;
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(customizer -> customizer.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/user/register", "/api/user/login" ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/api/user/login")
-                        .defaultSuccessUrl("/home", true)
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/api/user/login")
-                )
-                .httpBasic(Customizer.withDefaults());
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(customizer -> customizer.disable())
+//                .authorizeHttpRequests(authorize -> authorize
+//                        .requestMatchers("/api/user/register", "/api/user/login" ).permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                .formLogin(form -> form
+//                        .loginPage("/api/user/login")
+//                        .defaultSuccessUrl("/api/health", true)
+//                )
+//                .logout(logout -> logout
+//                        .logoutUrl("/logout")
+//                        .logoutSuccessUrl("/api/user/login")
+//                );
+////                .httpBasic(Customizer.withDefaults());
+//
+//        return http.build();
+//    }
 
-        return http.build();
-    }
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for REST API)
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/user/register", "/api/user/login").permitAll() // Allow login/register without authentication
+                    .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No session creation
+            .formLogin(form -> form.disable()) // ❌ Disable default form login (prevents 302 redirects)
+            .httpBasic(httpBasic -> httpBasic.disable()); // Disable Basic Authentication
+
+    return http.build();
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {
