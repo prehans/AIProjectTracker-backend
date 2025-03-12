@@ -11,7 +11,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -40,19 +43,34 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<Map<String,Object>> login(@RequestBody LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.username, request.password)
             );
             if (authentication.isAuthenticated()) {
-                return jwtService.generateToken(request.username);
+
+                // Creating a structured JSON response
+                ResponseEntity<String> token = jwtService.generateToken(request.username);
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("message", "Login Successful");
+                response.put("timestamp", Instant.now());
+
+                return ResponseEntity.ok(response);
+//                return jwtService.generateToken(request.username);
 //                        ResponseEntity.ok("Login Successfully");
             } else {
-                return ResponseEntity.status(401).body("Invalid credentials");
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Login Unsuccessful");
+                response.put("timestamp", Instant.now());
+                return ResponseEntity.status(401).body(response);
             }
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Invalid credentials");
+            response.put("timestamp", Instant.now());
+            return ResponseEntity.status(401).body(response);
         }
     }
 

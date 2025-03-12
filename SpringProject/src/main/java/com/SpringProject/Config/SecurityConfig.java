@@ -70,6 +70,8 @@
 package com.SpringProject.Config;
 
 import com.SpringProject.security.CustomAuthenticationProvider;
+import jakarta.servlet.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -82,6 +84,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
@@ -91,8 +94,13 @@ public class SecurityConfig {
 
     private final CustomAuthenticationProvider customAuthenticationProvider;
 
-    public SecurityConfig(@Lazy CustomAuthenticationProvider customAuthenticationProvider) {
+    @Autowired
+    private final JWTFilter jwtFilter;
+
+    public SecurityConfig(@Lazy CustomAuthenticationProvider customAuthenticationProvider, JWTFilter jwtFilter) {
         this.customAuthenticationProvider = customAuthenticationProvider;
+
+        this.jwtFilter = jwtFilter;
     }
 
 //    @Bean
@@ -118,15 +126,18 @@ public class SecurityConfig {
 
 @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
     http
             .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for REST API)
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/user/register", "/api/user/login").permitAll() // Allow login/register without authentication
+                    .requestMatchers("/api/user/register", "/api/user/login").permitAll()
+                    .requestMatchers("/api/ai/**").authenticated()// Allow login/register without authentication
                     .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No session creation
             .formLogin(form -> form.disable()) // ❌ Disable default form login (prevents 302 redirects)
-            .httpBasic(httpBasic -> httpBasic.disable()); // Disable Basic Authentication
+            .httpBasic(httpBasic -> httpBasic.disable()) // Disable Basic Authentication
+    .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // Add custom authentication filter
 
     return http.build();
 }
