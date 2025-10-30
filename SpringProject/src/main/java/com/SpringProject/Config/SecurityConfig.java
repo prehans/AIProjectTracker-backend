@@ -129,6 +129,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 
     http
             .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for REST API)
+            .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/user/register", "/api/user/login").permitAll()
                     .requestMatchers("/api/ai/**").authenticated()// Allow login/register without authentication

@@ -183,4 +183,67 @@ public class GenerativeAIService {
             return Collections.emptyList(); // Return an empty list in case of an error
         }
     }
+
+
+
+    public boolean updateTaskCompletion(Long taskId , boolean isCompleted){
+        Optional<Task> taskOptional = taskRepository.findById(taskId);
+        if (taskOptional.isPresent()) {
+            Task task = taskOptional.get();
+            task.setCompleted(isCompleted);
+            taskRepository.save(task);
+            return true; // Task updated successfully
+        } else {
+            return false; // Task not found
+        }
+    }
+
+    public ResponseEntity<String> getHint(String prompt){
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(Map.of(
+                        "parts", List.of(Map.of("text", prompt))
+                ))
+        );
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        // API URL
+        String GENERATIVE_AI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+
+        ResponseEntity<Map> response = restTemplate.exchange(GENERATIVE_AI_URL, HttpMethod.POST, entity, Map.class);
+//        if (response.getBody() != null && response.getBody().containsKey("candidates")) {
+//            List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+//            if (!candidates.isEmpty() && candidates.get(0).containsKey("content")) {
+//                return candidates.get(0).get("content").toString();
+//            }
+//        }
+//        if (response.getBody() != null && response.getBody().containsKey("candidates")) {
+//            List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+//
+//            if (!candidates.isEmpty() && candidates.get(0).containsKey("content")) {
+//                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+//
+//                if (content.containsKey("parts")) {
+//                    List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+//
+//                    if (!parts.isEmpty() && parts.get(0).containsKey("text")) {
+//                        return parts.get(0).get("text").toString();
+//                    }
+//                }
+//            }
+//        }
+        List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+        String hint = (String) ((Map<String, Object>) ((List<Map<String, Object>>) candidates.get(0).get("content")).get(0)).get("text");
+
+        // Convert response to HTML format
+        String htmlResponse = "<div style='font-family:Arial, sans-serif; padding:10px;'>"
+                + hint.replace("\n", "<br>") + "</div>";
+
+        return ResponseEntity.ok(htmlResponse);
+
+//        return "No response received from AI.";
+
+    }
 }
