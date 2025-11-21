@@ -131,7 +131,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for REST API)
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/user/register", "/api/user/login","api/auth/google-register").permitAll()
+                    .requestMatchers("/api/user/register", "/api/user/login","api/auth/google-register","api/auth/google-login").permitAll()
                     .requestMatchers("/api/ai/**").authenticated()// Allow login/register without authentication
                     .anyRequest().authenticated()
             )
