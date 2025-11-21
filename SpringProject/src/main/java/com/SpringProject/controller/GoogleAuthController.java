@@ -75,13 +75,7 @@ public class GoogleAuthController {
         if (user == null) {
             throw new UsernameNotFoundException("User Not Found");
         }
-//        if (userRepository.findByUsername(email) != null) {
-//            throw new RuntimeException("User not registered. Please register first.");
-//        }
-//        User existingUser = userService.getUserByUsername(email);
-//        if (existingUser == null) {
-//            throw new Exception("User not registered. Please register first.");
-//        }
+
 
         String Authtoken = jwtService.generateToken(email).getBody();
 
